@@ -1,0 +1,19 @@
+Columns with more than 80% empty space:
+cross_reference            582933
+date_exterior_condition    582933
+fuel                       533676
+garage_type                563534
+house_extension            556640
+mailing_address_2          582933
+mailing_care_of            557468
+market_value_date          582933
+number_of_rooms            572352
+other_building             581689
+separate_utilities         554490
+sewer                      567417
+site_type                  582933
+suffix                     580028
+unfinished                 582933
+unit                       542338
+utility                    582933
+dtype: int64
