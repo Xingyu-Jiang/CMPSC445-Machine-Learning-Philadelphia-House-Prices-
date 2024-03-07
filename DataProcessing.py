@@ -13,7 +13,6 @@ all_data = pd.read_csv(filePath, low_memory=False)
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 
-
 # ---------------------------------------------------------------------------------------------
 
 # Calculate missing values for all columns
@@ -39,7 +38,7 @@ unnecessaryColumns = ['assessment_date', 'beginning_point', 'book_and_page', 'bu
                       'mailing_address_1', 'mailing_city_state', 'mailing_street', 'mailing_zip', 'objectid', 'owner_1',
                       'owner_2', 'parcel_number', 'pin', 'recording_date', 'registry_number', 'sale_date', 'sale_price',
                       'state_code', 'street_designation', 'street_direction', 'street_name', 'the_geom',
-                      'the_geom_webmercator', 'topography', 'year_built_estimate']
+                      'the_geom_webmercator', 'topography', 'year_built_estimate', 'quality_grade', 'zoning']
 
 columnsToDrop = unnecessaryColumns + high_missing_columns_list
 
@@ -57,10 +56,6 @@ data = data.drop(data[data.market_value == 0].index)
 # Category code
 values_to_remove = [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 data = data[~data['category_code'].isin(values_to_remove)]
-
-# # Perform one-hot encoding for the 'category_code' column inplace
-# data = pd.get_dummies(data, columns=['category_code'], prefix='category')
-
 encoded_data = label_encoder.fit_transform(data['category_code'])
 data['category_code'] = encoded_data
 
@@ -93,23 +88,24 @@ encoded_data = label_encoder.fit_transform(data['central_air'])
 data['central_air'] = encoded_data
 
 # Depth
-data.loc[:, "depth"] = data['depth'].fillna(0)
+data.dropna(subset=['depth'], inplace=True)
 
 # Exterior condition
-data.loc[:, "exterior_condition"] = data['exterior_condition'].fillna(0)
+data.dropna(subset=['exterior_condition'], inplace=True)
 encoded_data = label_encoder.fit_transform(data['exterior_condition'])
 data['exterior_condition'] = encoded_data
 
 # Fireplaces
-data.loc[:, "fireplaces"] = data['fireplaces'].fillna(0)
+data.dropna(subset=['fireplaces'], inplace=True)
 encoded_data = label_encoder.fit_transform(data['fireplaces'])
 data['fireplaces'] = encoded_data
 
 # Frontage
-data.loc[:, "frontage"] = data['frontage'].fillna(0)
+data.dropna(subset=['frontage'], inplace=True)
 
 # Garage spaces
-data.loc[:, "garage_spaces"] = data['garage_spaces'].fillna(0)
+data.dropna(subset=['garage_spaces'], inplace=True)
+
 
 # General Construction
 data.loc[:, "general_construction"] = data['general_construction'].fillna('G')
@@ -117,18 +113,18 @@ encoded_data = label_encoder.fit_transform(data['general_construction'])
 data['general_construction'] = encoded_data
 
 # Interior Condition
-data.loc[:, "interior_condition"] = data['interior_condition'].fillna(0)
+data.dropna(subset=['garage_spaces'], inplace=True)
 encoded_data = label_encoder.fit_transform(data['interior_condition'])
 data['interior_condition'] = encoded_data
 
 # Number of Bathrooms
-data.loc[:, "number_of_bathrooms"] = data['number_of_bathrooms'].fillna(0)
+data.dropna(subset=['number_of_bathrooms'], inplace=True)
 
 # Number of Bedrooms
-data.loc[:, "number_of_bedrooms"] = data['number_of_bedrooms'].fillna(0)
+data.dropna(subset=['number_of_bedrooms'], inplace=True)
 
 # Number stories
-data.loc[:, "number_stories"] = data['number_stories'].fillna(0)
+data.dropna(subset=['number_stories'], inplace=True)
 
 # Off Street Open
 median_off_street_open = data['off_street_open'].median()
@@ -136,23 +132,8 @@ data.loc[:, "off_street_open"] = data['off_street_open'].fillna(median_off_stree
 
 # Parcel shape
 data.loc[:, "parcel_shape"] = data['parcel_shape'].fillna('F')
-data.loc[:, "parcel_shape"] = data['parcel_shape'].replace(' ', 'F')
 encoded_data = label_encoder.fit_transform(data['parcel_shape'])
 data['parcel_shape'] = encoded_data
-
-# Quality Grade
-data.loc[:, "quality_grade"] = data['quality_grade'].replace({'D-': 1, 'D ': 1, 'D+': 1, '1 ': 1})
-data.loc[:, "quality_grade"] = data['quality_grade'].replace({'E-': 2, 'E ': 2, 'E+': 2, '2 ': 2})
-data.loc[:, "quality_grade"] = data['quality_grade'].replace({'C-': 3, 'C ': 3, 'C+': 3, '3 ': 3})
-data.loc[:, "quality_grade"] = data['quality_grade'].replace({'B-': 4, 'B ': 4, 'B+': 4, '4 ': 4})
-data.loc[:, "quality_grade"] = data['quality_grade'].replace({'A-': 5, 'A ': 5, 'A+': 5, '5 ': 5})
-data.loc[:, "quality_grade"] = data['quality_grade'].replace({'S-': 6, 'S ': 6, 'S+': 6, '6 ': 6})
-data.loc[:, "quality_grade"] = data['quality_grade'].replace({'X-': 7, 'X ': 7, 'X+': 7, '7 ': 7})
-data.drop(data[data['quality_grade'] == '0 '].index, inplace=True)
-median_quality_grade = data['quality_grade'].median()
-data.loc[:, "quality_grade"] = data['quality_grade'].fillna(median_quality_grade).astype(int)
-encoded_data = label_encoder.fit_transform(data['quality_grade'])
-data['quality_grade'] = encoded_data
 
 # Street Code
 data.dropna(subset=['street_code'], inplace=True)
@@ -186,11 +167,6 @@ data['view_type'] = encoded_data
 median_year_built = data['year_built'].median()
 data.loc[:, "year_built"] = data['year_built'].fillna(median_year_built).astype(int)
 
-# Zoning
-data.dropna(subset=['zoning'], inplace=True)
-encoded_data = label_encoder.fit_transform(data['zoning'])
-data['zoning'] = encoded_data
-
 # ---------------------------------------------------------------------------------------------
 
 # Define the file path for the new CSV file
@@ -201,10 +177,10 @@ data.to_csv(processedDataFilePath, index=False)
 
 print("New data has been saved to", processedDataFilePath)
 
-# print(data.shape)
-# print(data.columns)
+print(data.shape)
+print(data.columns)
 
-# Show and calculate missing values for all columns
-print("Columns and amount of missing values")
-missing_values = data.isnull().sum()
-print(missing_values)
+# # Show and calculate missing values for all columns
+# print("Columns and amount of missing values")
+# missing_values = data.isnull().sum()
+# print(missing_values)
